@@ -696,3 +696,57 @@ def save_draft(session: Session, actor: User, batch_id: int, lines: list[dict], 
         created.append(allocation)
     session.flush()
     return created
+
+
+def recommend(session: Session, actor: User, batch_id: int, fresh_hours: int, now=None) -> dict:
+    _require_coordinator(actor)
+    moment = now or utcnow()
+    batch = session.get(FoodBatch, batch_id)
+    if batch is None:
+        raise DomainError("Food batch not found", 404)
+    sites = session.scalars(select(Site).where(Site.network_id == batch.network_id).order_by(Site.name)).all()
+    proposals = []
+    excluded = []
+    for site in sites:
+        look = inspect_site(session, site, batch, moment, fresh_hours)
+        if look["reasons"]:
+            excluded.append({"site_id": site.id, "site_name": site.name, "reasons": look["reasons"]})
+            continue
+        proposals.append(
+            {
+                "site_id": site.id,
+                "site_name": site.name,
+                "need": look["need"],
+                "room": look["room"],
+                "recent": look["recent"],
+                "score": look["need"] - look["recent"],
+                "receiving_end": look["receiving_end"],
+            }
+        )
+    proposals.sort(key=lambda item: (-item["score"], item["site_name"]))
+    remaining = batch.quantity - _holding(session, batch.id)
+    left = remaining
+    ranked = []
+    for item in proposals:
+        take = min(item["need"], item["room"], left)
+        take = max(take, 0)
+        left -= take
+        text = eligible_explanation(batch.category, batch.unit, item["room"], item["receiving_end"])
+        if item["recent"]:
+            text += f" {unit_phrase(item['recent'], batch.unit)} were reserved or delivered in the last 14 days."
+        if take == 0 and remaining == 0:
+            text += " This batch has no quantity left to reserve."
+        elif take == 0 and item["room"] > 0:
+            text += " Higher ranked sites already use the remaining quantity."
+        ranked.append(
+            {
+                "site_id": item["site_id"],
+                "site_name": item["site_name"],
+                "suggested_quantity": take,
+                "explanation": text,
+                "need": item["need"],
+                "room": item["room"],
+                "recent": item["recent"],
+            }
+        )
+    return {"batch": batch_view(session, batch), "proposals": ranked, "excluded": excluded}

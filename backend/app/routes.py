@@ -22,6 +22,7 @@ from app.services import (
     list_batches,
     list_sites,
     overview,
+    recommend,
     reserve,
     save_draft,
     submit_report,
@@ -179,6 +180,15 @@ def reserve_route(
         return [allocation_view(session, row) for row in rows]
 
     return _run(session, work)
+
+
+@router.get("/batches/{batch_id}/recommendations")
+def recommendations_route(
+    batch_id: int,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+):
+    return recommend(session, user, batch_id, settings.capacity_fresh_hours)
 
 
 @router.get("/allocations")

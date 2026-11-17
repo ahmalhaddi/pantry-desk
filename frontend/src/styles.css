@@ -1,0 +1,35 @@
+:root {
+  color: #1e1a16;
+  background: #f3f0e8;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  line-height: 1.45;
+}
+
+body {
+  margin: 0;
+}
+
+.shell {
+  max-width: 40rem;
+  margin: 4rem auto;
+  padding: 0 1.25rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5e574e;
+}
+
+h1 {
+  margin: 0 0 0.75rem;
+  font-size: 2rem;
+  font-weight: 650;
+}
+
+.lede {
+  margin: 0;
+  font-size: 1.05rem;
+}

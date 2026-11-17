@@ -14,6 +14,7 @@ from app.models import (
     CapacityReport,
     CapacityStorage,
     FoodBatch,
+    IdempotencyKey,
     Network,
     Site,
     SiteAssignment,
@@ -88,6 +89,7 @@ def reset(now: datetime | None = None) -> None:
         for model in (
             AllocationEvent,
             Allocation,
+            IdempotencyKey,
             CapacityLine,
             CapacityStorage,
             CapacityReport,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -9,6 +10,8 @@ from sqlalchemy.orm import Session
 from app.auth import current_user, make_token, user_view, verify_password
 from app.database import get_session
 from app.models import User
+from app.routes import router
+from app.rules import DomainError
 
 app = FastAPI(title="Pantry Desk")
 
@@ -19,6 +22,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(router)
+
+
+@app.exception_handler(DomainError)
+def domain_error(_, exc: DomainError) -> JSONResponse:
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
 
 class LoginIn(BaseModel):

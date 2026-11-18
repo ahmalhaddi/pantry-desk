@@ -16,6 +16,13 @@ export function categoryLabel(value: string): string {
   return CATEGORIES[value] ?? value;
 }
 
+export function storageLabel(value: string): string {
+  if (value === "ambient") return "Ambient";
+  if (value === "refrigerated") return "Refrigerated";
+  if (value === "frozen") return "Frozen";
+  return value;
+}
+
 export function unitLabel(quantity: number, unit: string): string {
   if (quantity === 1) {
     if (unit === "case") return "1 case";

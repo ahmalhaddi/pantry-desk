@@ -1,7 +1,7 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import { ApiError, User, api, localInputToIso, setToken, token } from "./api";
-import { categoryLabel, statusLabel, unitLabel, when } from "./format";
+import { categoryLabel, statusLabel, storageLabel, unitLabel, when } from "./format";
 
 type NextAction = { label: string; href: string };
 type Batch = {
@@ -182,6 +182,8 @@ function Overview() {
             {data.batches.map((batch) => (
               <li key={batch.id}>
                 <Link to={`/batches/${batch.id}`}>{categoryLabel(batch.category)}</Link>
+                {" · "}
+                {storageLabel(batch.storage_requirement)}
                 {" · "}
                 {unitLabel(batch.remaining_quantity, batch.unit)} available
                 {" · deliver by "}
@@ -420,6 +422,7 @@ function Batches({ coordinator }: { coordinator: boolean }) {
           <thead>
             <tr>
               <th>Food</th>
+              <th>Storage</th>
               <th>Available quantity</th>
               <th>Deadline</th>
             </tr>
@@ -428,6 +431,7 @@ function Batches({ coordinator }: { coordinator: boolean }) {
             {batches.map((batch) => (
               <tr key={batch.id}>
                 <td>{coordinator ? <Link to={`/batches/${batch.id}`}>{categoryLabel(batch.category)}</Link> : categoryLabel(batch.category)}</td>
+                <td>{storageLabel(batch.storage_requirement)}</td>
                 <td>{unitLabel(batch.remaining_quantity, batch.unit)} of {unitLabel(batch.quantity, batch.unit)}</td>
                 <td>{when(batch.distribution_deadline)}</td>
               </tr>
@@ -529,7 +533,7 @@ function Planner() {
   return (
     <>
       <h1>{categoryLabel(plan.batch.category)}</h1>
-      <p>{unitLabel(plan.batch.remaining_quantity, plan.batch.unit)} available. Deliver by {when(plan.batch.distribution_deadline)}.</p>
+      <p>{storageLabel(plan.batch.storage_requirement)}. {unitLabel(plan.batch.remaining_quantity, plan.batch.unit)} available. Deliver by {when(plan.batch.distribution_deadline)}.</p>
       <form onSubmit={reserveFood}>
         {plan.proposals.length === 0 ? <Notice empty="No site is eligible for this batch." /> : (
           <table>
